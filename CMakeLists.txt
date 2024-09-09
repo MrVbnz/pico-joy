@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 
 # TinyUSB Settings
-set(TUSB_PATH $ENV{PICO_SDK_PATH}/lib/tinyusb)
+set(TINY_USB_PATH $ENV{PICO_SDK_PATH}/lib/tinyusb)
 set(FAMILY rp2040)
 set(BOARD raspberry_pi_pico)
 
 # Includes
-# include(pico_sdk_import.cmake)
-include(${TUSB_PATH}/hw/bsp/family_support.cmake)
+include(${TINY_USB_PATH}/hw/bsp/family_support.cmake)
 
 set(PROJECT pico_joy)
 project(${PROJECT})
@@ -25,10 +24,12 @@ target_sources(${PROJECT} PRIVATE
     src/main.c
     src/blinker.c
     src/pico_hid.c
+    src/usb_descriptors.c
 )
 
 target_include_directories(${PROJECT} PRIVATE
     src
+    ${TINY_USB_PATH}/src/class/hid/
 )
 
-target_link_libraries(${PROJECT} sdofnsdljbslfjb tinyusb_device tinyusb_board)
+target_link_libraries(${PROJECT} pico_stdlib tinyusb_device tinyusb_board hardware_adc)

@@ -1,9 +1,51 @@
 #include "pico_hid.h"
 
-static void send_hid_report(void)
+#define RANGE (INT8_MAX - INT8_MIN + 1)
+
+
+void send_hid_report(void)
 {  
   if (!tud_hid_ready()) return;
-  tud_hid_report(1, &gamepad_report, sizeof(gamepad_report));
+
+  hid_gamepad_report_t report =
+  {
+    .x   = 0,
+    .y = 0,
+    .z = 0,
+    .rz = 0,
+    .rx = 0,
+    .ry = 0,
+    .hat = 0,
+    .buttons = 0
+  };
+
+
+
+  //int8_t value = (adc_read() / 256) - 128;
+  adc_select_input(1);
+  float raw_value = (float)adc_read();
+  static float max0, min0;
+  if (raw_value > max0) max0 = raw_value;
+  if (raw_value < min0) min0 = raw_value;
+  raw_value = ((raw_value - min0) / (max0 - min0) - 0.5f) * 2.0f;
+  report.y = (int8_t)(raw_value * 127);
+  
+  adc_select_input(0);
+  raw_value = (float)adc_read();
+  static float max1, min1;
+  if (raw_value > max1) max1 = raw_value;
+  if (raw_value < min1) min1 = raw_value;
+  raw_value = ((raw_value - min1) / (max1 - min1) - 0.5f) * 2.0f;
+  report.x = (int8_t)(raw_value * 127);
+  // int8_t v1 = raw_value;
+  // int8_t v2 = raw_value >> 8; //board_button_read() > 0 ? -1 : 1;
+
+  // report.x = v1;
+  // report.y = v2;
+
+  tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
+
+  //tud_hid_report(1, gamepad_report, sizeof(gamepad_report));
 }
 
 // Every 10ms, we will sent 1 repor
@@ -13,7 +55,8 @@ void hid_task(void)
   const uint32_t interval_ms = 10;
   static uint32_t start_ms = 0;
 
-  if ( board_millis() - start_ms < interval_ms) return; // not enough time
+
+  if (board_millis() - start_ms < interval_ms) return; // not enough time
   start_ms += interval_ms;
 
   if (tud_suspended())

@@ -8,18 +8,25 @@
 #include "usb_descriptors.h"
 // GPIO
 #include "hardware/gpio.h"
-// #include "hardware/adc.h"
+#include "hardware/adc.h"
 
-// #include "blinker.h"
-// #include "pico_hid.h"
+#include "blinker.h"
+#include "pico_hid.h"
+
+void input_handling_task(void) 
+{
+      
+} 
 
 void main(void) 
 {
   board_init();
 
   adc_init();
+  
   adc_gpio_init(26);
-  adc_select_input(0);
+  adc_gpio_init(27);
+  
 
   // init device stack on configured roothub port
   tud_init(BOARD_TUD_RHPORT);
@@ -33,11 +40,7 @@ void main(void)
   {
     tud_task();
     led_blinking_task();
-    // input_handling_task();
+    input_handling_task();
     hid_task();
   }
 }
-
-// void input_handling_task() {
-//     gamepad_report.x = adc_read();
-// }
